@@ -1,6 +1,8 @@
 
+import aiohttp
+import aiofiles
+import asyncio
 
-import requests
 import json
 
 from .info import Info
@@ -19,56 +21,67 @@ class Endpoint(object):
         else:
             self.remote = False
 
-    def fetch(self, part=None):
+    async def download(self, session, url):
+        async with session.get(url) as response:
+            return await response.text()
+
+    async def fetch(self, part=None):
+
         url = self.url
         if part:
             url = url + part
 
         if self.remote:
-            data = requests.get(self.url).json()
+            async with aiohttp.ClientSession() as session:
+                j = await self.download(session, url)
+                return j
         else:
-            with open(url, 'rb') as d:
-                data = d.read()
-        return data
+            async with aiofiles.open(url, 'rb') as d:
+                data = await d.read()
+                return data
 
 class EPT(object):
 
     def __init__(self, url, bounds=None):
 
+        self.root_url = url
         self.key = Key()
-        endpoint = Endpoint(url)
-        self.info = self._get_info(endpoint, url)
-        self.key.coords = self.info.bounds
         self.overlaps_dict = {}
-        self.endpoint = endpoint
         self.depthEnd = float('inf')
         self.queryBounds = bounds
+        self.endpoint = Endpoint(self.root_url)
 
+    def get_info(self):
+        loop = asyncio.get_event_loop()
+        info = loop.run_until_complete(self._get_info(self.endpoint, self.root_url))
+        self.key.coords = info.bounds
+        return info
 
+    info = property(get_info)
 
-
-    def _get_info(self, endpoint, url):
-        part = None
-        if '.json' not in url:
-            part = '/ept.json'
-
-        return Info(endpoint.fetch(part))
+    async def _get_info(self, endpoint, url):
+        d = await endpoint.fetch('/ept.json')
+        return Info(d)
 
 
     def count(self):
-        self._overlaps()
+        loop = asyncio.get_event_loop()
+        o = loop.run_until_complete(self._overlaps())
+        return o
 
-    def _overlaps(self):
+    async def _overlaps(self):
         k = Key()
         k.coords = self.key.coords
 
         f = "/ept-hierarchy/" + k.id() + ".json"
-        hier = json.loads(self.endpoint.fetch(f))
+
+        d = await self.endpoint.fetch(f)
+        hier = json.loads(d)
 
 
-        self.overlaps(self.endpoint, self.overlaps_dict, hier, k)
+        await self.overlaps(self.endpoint, self.overlaps_dict, hier, k)
 
-    def overlaps(   self,
+    async def overlaps(   self,
                     endpoint,
                     overlaps_dict,
                     hier,
@@ -82,10 +95,11 @@ class EPT(object):
         k.coords = self.key.coords
 
         f = "/ept-hierarchy/" + k.id() + ".json"
-        hier = json.loads(self.endpoint.fetch(f))
+        data = await self.endpoint.fetch(f)
+        hier = json.loads(data)
 
 
-        overlaps(self.endpoint, self.overlaps_dict, hier, k)
+        await overlaps(self.endpoint, self.overlaps_dict, hier, k)
 
 
         print ("checking overlaps")

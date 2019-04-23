@@ -5,7 +5,8 @@ from ept.ept import EPT
 class TestEPT(unittest.TestCase):
 
     def setUp(self):
-        self.e = EPT('test/ept-star')
+#        self.e = EPT('test/ept-star')
+        self.e = EPT('http://entwine.io/data/ept-star')
 
     def test_info(self):
         self.assertEqual(len(self.e.info), 518862)
