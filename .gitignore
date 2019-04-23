@@ -3,3 +3,4 @@ build
 dist
 ept.egg-info/
 VERSION.txt
+__pycache__/
