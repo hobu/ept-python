@@ -3,6 +3,8 @@ import copy
 class Bounds(object):
     def __init__(self, *args):
         self.coords = args
+    def __repr__(self):
+        return repr(self.coords)
 
 
 class Key(object):

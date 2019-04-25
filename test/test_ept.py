@@ -47,21 +47,28 @@ class TestEPT(unittest.TestCase):
 
     def test_count(self):
         e = EPT('test/ept-star')
-        self.assertEqual(e.count(),518862)
+        self.assertEqual(e.count(), 518862)
 
     def test_boundedCount(self):
         e = EPT('test/ept-star')
-        b = Bounds(515380, 4918350, 2320, 515400, 4918370, 2360)
+        b = Bounds(515380, 4918350, 2320, 515400, 4918370, 2325)
         e.queryBounds = b
-        self.assertEqual(e.count(), 354211)
+        self.assertEqual(e.count(), 208375)
+#        self.assertEqual(e.count(), 45930) # real count for this box
 
     def test_boundedDepth(self):
         e = EPT('test/ept-star')
+#        e = EPT('http://entwine.io/data/ept-star')
+
+        e.depthEnd = 3
+        self.assertEqual(e.count(), 303955)
+
+    def test_boundedResolution(self):
+        e = EPT('test/ept-star')
         e = EPT('http://entwine.io/data/ept-star')
 
-        e.depthEnd = 2
-        self.assertEqual(e.count(),303955)
-
+        e.queryResolution = 0.1
+        self.assertEqual(e.count(), 303955)
 
 if __name__ == '__main__':
     unittest.main()

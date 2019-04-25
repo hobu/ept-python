@@ -42,39 +42,37 @@ class Endpoint(object):
 
 class EPT(object):
 
-    def __init__(self, url, bounds=None, depthEnd=None):
+    def __init__(self,  url,
+                        bounds = None,
+                        queryResolution = None):
 
         self.root_url = url
         self.key = Key()
         self.overlaps_dict = {}
-        self.depthEnd = depthEnd
+        self.depthEnd = None
+        self.queryResolution = queryResolution
         self.queryBounds = bounds
         self.endpoint = Endpoint(self.root_url)
+        self.info = self.get_info()
 
     def get_info(self):
         loop = asyncio.get_event_loop()
         info = loop.run_until_complete(self._get_info(self.endpoint, self.root_url))
         return info
 
-    info = property(get_info)
 
     async def _get_info(self, endpoint, url):
         d = await endpoint.fetch('/ept.json')
         return Info(d)
 
-
     def count(self):
-        info = self.get_info()
-        self.key.coords = info.bounds
-
         loop = asyncio.get_event_loop()
         o = loop.run_until_complete(self._overlaps())
-
         return (sum(self.overlaps_dict.values()))
 
     async def _overlaps(self):
         k = Key()
-        k.coords = self.key.coords
+        k.coords = self.info.bounds
 
         f = "/ept-hierarchy/" + k.id() + ".json"
 
@@ -88,10 +86,19 @@ class EPT(object):
                         hier,
                         key):
 
-        if (self.queryBounds):
+        if self.queryBounds:
             if not key.overlaps(self.queryBounds):
                 return
 
+        # if we have already set self.depthEnd
+        # dont set it again
+        if self.queryResolution and not self.depthEnd:
+            currentResolution = (self.info.bounds[3] - self.info.bounds[0]) / self.info.span
+
+            self.depthEnd = 1
+            while (currentResolution > self.queryResolution):
+                currentResolution = currentResolution / 2.0
+                self.depthEnd = self.depthEnd + 1
 
         if self.depthEnd:
             if key.d >= self.depthEnd:
@@ -118,14 +125,10 @@ class EPT(object):
 
         else:
             # check overlaps in each direction
-
             self.overlaps_dict[key] = numPoints
-            bisected = key
             for direction in range(8):
-                bisected = key.bisect(direction)
                 await self.overlaps(self.endpoint,
                                     self.overlaps_dict,
                                     hier,
-                                    bisected)
-#
+                                    key.bisect(direction))
 
