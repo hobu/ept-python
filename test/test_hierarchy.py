@@ -53,7 +53,8 @@ class TestKey(unittest.TestCase):
                 2353
         ]
 
-        k.bisect(1)
+        for direction in range(8):
+            k.bisect(direction)
 
     def test_hash(self):
         k = Key()

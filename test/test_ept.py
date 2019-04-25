@@ -1,12 +1,13 @@
 import unittest
 
 from ept.ept import EPT
+from ept.hierarchy import Bounds
 
 class TestEPT(unittest.TestCase):
 
     def setUp(self):
-#        self.e = EPT('test/ept-star')
-        self.e = EPT('http://entwine.io/data/ept-star')
+        self.e = EPT('test/ept-star')
+#        self.e = EPT('http://entwine.io/data/ept-star')
 
     def test_info(self):
         self.assertEqual(len(self.e.info), 518862)
@@ -46,7 +47,21 @@ class TestEPT(unittest.TestCase):
 
     def test_count(self):
         e = EPT('test/ept-star')
-        e.count()
+        self.assertEqual(e.count(),518862)
+
+    def test_boundedCount(self):
+        e = EPT('test/ept-star')
+        b = Bounds(515380, 4918350, 2320, 515400, 4918370, 2360)
+        e.queryBounds = b
+        self.assertEqual(e.count(), 354211)
+
+    def test_boundedDepth(self):
+        e = EPT('test/ept-star')
+        e = EPT('http://entwine.io/data/ept-star')
+
+        e.depthEnd = 2
+        self.assertEqual(e.count(),303955)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,28 +1,9 @@
+import copy
 
-# class Box(object):
-#     def __init__(self,  minx = 0.0,
-#                         miny = 0.0,
-#                         minz = 0.0,
-#                         maxx = 0.0,
-#                         maxy = 0.0,
-#                         maxz = 0.0):
-#
-#         self.minx = minx; self.maxx = maxx
-#         self.miny = miny; self.maxy = maxy
-#         self.minz = minz; self.maxz = maxz
-#
-#     def __repr__(self):
-#         return "box3d(%.3f %.3f %.3f %.3f %.3f %.3f)" % (self.minx, self.miny, self.minz, self.maxx, self.maxy, self.maxz)
-#
-#     def overlaps(self, other):
-#          return self.minx <= other.maxx and self.maxx >= other.minx and \
-#                 self.miny <= other.maxy and self.maxy >= other.miny and \
-#                 self.minz <= other.maxz and self.maxz >= other.minz
-#
-#     def contains(self, other):
-#         return  self.minx <= other.minx and self.maxx <= other.maxx and \
-#                 self.miny <= other.miny and self.maxy <= other.maxy and \
-#                 self.minz <= other.minz and self.maxz <= other.maxz
+class Bounds(object):
+    def __init__(self, *args):
+        self.coords = args
+
 
 class Key(object):
     def __init__(self, k=None):
@@ -43,7 +24,6 @@ class Key(object):
                 self.ids[1] = y
                 self.ids[2] = z
 
-
     def id(self):
         return '%d-%d-%d-%d' % (self.d, self.ids[0], self.ids[1], self.ids[2])
 
@@ -51,7 +31,7 @@ class Key(object):
         minx = self.coords[0]; miny = self.coords[1]; minz = self.coords[2]
         maxx = self.coords[3]; maxy = self.coords[4]; maxz = self.coords[5]
 
-        return "depth: %d, ids: %s, box3d(%.3f %.3f %.3f %.3f %.3f %.3f)" % (self.d, self.ids, minx, miny, minz, maxx, maxy, maxz)
+        return "id: %s, box3d(%.3f %.3f %.3f %.3f %.3f %.3f)" % (self.id(), minx, miny, minz, maxx, maxy, maxz)
 
     def contains(self, other):
         return  self.coords[0] <= other.coords[0] and self.coords[3] <= other.coords[3] and \
@@ -59,15 +39,14 @@ class Key(object):
                 self.coords[2] <= other.coords[2] and self.coords[5] <= other.coords[5]
 
     def overlaps(self, other):
-        try:
-            return self.coords[0] <= other.coords[3] and self.coords[3] >= other.coords[0] and \
-                    self.coords[1] <= other.coords[4] and self.coords[4] >= other.coords[1] and \
-                    self.coords[2] <= other.coords[5] and self.coords[5] >= other.coords[2]
-        except AttributeError:
-            return False
+        return  self.coords[0] <= other.coords[3] and self.coords[3] >= other.coords[0] and \
+                self.coords[1] <= other.coords[4] and self.coords[4] >= other.coords[1] and \
+                self.coords[2] <= other.coords[5] and self.coords[5] >= other.coords[2]
 
     def bisect(self, direction):
-        key = Key(self)
+
+        key = copy.deepcopy(Key(self))
+
         key.d = key.d + 1
 
         def step(i):
@@ -75,7 +54,7 @@ class Key(object):
 
             mid = key.coords[i] + (key.coords[i+3] - key.coords[i])/2.0
 
-            positive = (direction & (1 << i))
+            positive = bool(direction & (int(1) << i))
             if positive:
                 key.coords[i] = mid
                 key.ids[i] = key.ids[i] + 1
