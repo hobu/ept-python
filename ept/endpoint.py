@@ -16,15 +16,8 @@ class Http(Driver):
     def __init__(self, root):
         super(Http, self).__init__(root)
 
-    async def download(self, session, url):
-        async with session.get(url) as response:
-            return await response.text()
-
-    async def get(self, part=None, session=None):
-        url = self.root
-        if part:
-            url = url + part
-#        async with aiohttp.ClientSession() as session:
+    async def get(self, part, session = None):
+        url = self.root + part
         if session:
             async with session.get(url) as response:
                 return await response.read()
@@ -55,7 +48,7 @@ class File(Driver):
     def __init__(self, root):
         super(File, self).__init__(root)
 
-    async def get(self, part=None, session=None):
+    async def get(self, part, session=None):
         url = self.root
         if part:
             url = url + part
@@ -76,7 +69,7 @@ class Endpoint(object):
             self.remote = False
             self.driver = File(root)
 
-    def get(self, part=None):
+    def get(self, part):
         loop = asyncio.get_event_loop()
         o = loop.run_until_complete(self.driver.get(part))
         return o

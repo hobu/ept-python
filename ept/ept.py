@@ -35,10 +35,10 @@ class EPT(object):
 
     def count(self):
         loop = asyncio.get_event_loop()
-        o = loop.run_until_complete(self._overlaps())
+        o = loop.run_until_complete(self.overlaps())
         return (sum(self.overlaps_dict.values()))
 
-    async def _overlaps(self):
+    async def overlaps(self):
         k = Key()
         k.coords = self.info.bounds
 
@@ -47,9 +47,9 @@ class EPT(object):
         async with aiohttp.ClientSession() as session:
             d = await self.endpoint.aget(f, session)
             hier = json.loads(d)
-            await self.overlaps(self.endpoint, self.overlaps_dict, hier, k, session)
+            await self._overlaps(self.endpoint, self.overlaps_dict, hier, k, session)
 
-    async def overlaps( self,
+    async def _overlaps( self,
                         endpoint,
                         overlaps_dict,
                         hier,
@@ -89,7 +89,7 @@ class EPT(object):
             f = "/ept-hierarchy/" + key.id() + ".json"
             data = await self.endpoint.aget(f, session)
             hier = json.loads(data)
-            await self.overlaps(self.endpoint,
+            await self._overlaps(self.endpoint,
                                 self.overlaps_dict,
                                 hier,
                                 key,
@@ -99,7 +99,7 @@ class EPT(object):
             # check overlaps in each direction
             self.overlaps_dict[key] = numPoints
             for direction in range(8):
-                await self.overlaps(self.endpoint,
+                await self._overlaps(self.endpoint,
                                     self.overlaps_dict,
                                     hier,
                                     key.bisect(direction), session)
