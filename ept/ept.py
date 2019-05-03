@@ -7,38 +7,9 @@ import json
 
 from .info import Info
 from .hierarchy import Key, Bounds
+from .endpoint import Endpoint
 
 import concurrent.futures
-
-
-class Endpoint(object):
-    def __init__(self, root):
-        self.root = root
-        self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
-
-        if 'http' in root or 'https' in root:
-            self.remote = True
-        else:
-            self.remote = False
-
-    async def download(self, session, url):
-        async with session.get(url) as response:
-            return await response.text()
-
-    async def fetch(self, part=None):
-
-        url = self.root
-        if part:
-            url = url + part
-
-        if self.remote:
-            async with aiohttp.ClientSession() as session:
-                j = await self.download(session, url)
-                return j
-        else:
-            async with aiofiles.open(url, 'rb') as d:
-                data = await d.read()
-                return data
 
 class EPT(object):
 
@@ -54,16 +25,13 @@ class EPT(object):
         self.queryBounds = bounds
         self.endpoint = Endpoint(self.root_url)
         self.info = self.get_info()
+        self.computedDepth = False
+
 
     def get_info(self):
-        loop = asyncio.get_event_loop()
-        info = loop.run_until_complete(self._get_info(self.endpoint, self.root_url))
+        d = self.endpoint.get('/ept.json')
+        info = Info(d)
         return info
-
-
-    async def _get_info(self, endpoint, url):
-        d = await endpoint.fetch('/ept.json')
-        return Info(d)
 
     def count(self):
         loop = asyncio.get_event_loop()
@@ -76,15 +44,17 @@ class EPT(object):
 
         f = "/ept-hierarchy/" + k.id() + ".json"
 
-        d = await self.endpoint.fetch(f)
-        hier = json.loads(d)
-        await self.overlaps(self.endpoint, self.overlaps_dict, hier, k)
+        async with aiohttp.ClientSession() as session:
+            d = await self.endpoint.aget(f, session)
+            hier = json.loads(d)
+            await self.overlaps(self.endpoint, self.overlaps_dict, hier, k, session)
 
     async def overlaps( self,
                         endpoint,
                         overlaps_dict,
                         hier,
-                        key):
+                        key,
+                        session):
 
         if self.queryBounds:
             if not key.overlaps(self.queryBounds):
@@ -92,13 +62,14 @@ class EPT(object):
 
         # if we have already set self.depthEnd
         # dont set it again
-        if self.queryResolution and not self.depthEnd:
+        if self.queryResolution and not self.computedDepth and not self.depthEnd:
             currentResolution = (self.info.bounds[3] - self.info.bounds[0]) / self.info.span
 
             self.depthEnd = 1
             while (currentResolution > self.queryResolution):
                 currentResolution = currentResolution / 2.0
                 self.depthEnd = self.depthEnd + 1
+            self.computedDepth = True
 
         if self.depthEnd:
             if key.d >= self.depthEnd:
@@ -116,12 +87,13 @@ class EPT(object):
             # fetch more hierarchy
 
             f = "/ept-hierarchy/" + key.id() + ".json"
-            data = await self.endpoint.fetch(f)
+            data = await self.endpoint.aget(f, session)
             hier = json.loads(data)
             await self.overlaps(self.endpoint,
                                 self.overlaps_dict,
                                 hier,
-                                key)
+                                key,
+                                session)
 
         else:
             # check overlaps in each direction
@@ -130,5 +102,5 @@ class EPT(object):
                 await self.overlaps(self.endpoint,
                                     self.overlaps_dict,
                                     hier,
-                                    key.bisect(direction))
+                                    key.bisect(direction), session)
 

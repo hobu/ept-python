@@ -7,7 +7,7 @@ class TestEPT(unittest.TestCase):
 
     def setUp(self):
         self.e = EPT('test/ept-star')
-#        self.e = EPT('http://entwine.io/data/ept-star')
+        self.e = EPT('http://entwine.io/data/ept-star')
 
     def test_info(self):
         self.assertEqual(len(self.e.info), 518862)
@@ -58,13 +58,13 @@ class TestEPT(unittest.TestCase):
 
     def test_boundedDepth(self):
         e = EPT('test/ept-star')
-#        e = EPT('http://entwine.io/data/ept-star')
+        e = EPT('http://entwine.io/data/ept-star')
 
         e.depthEnd = 3
         self.assertEqual(e.count(), 303955)
 
     def test_boundedResolution(self):
-        e = EPT('test/ept-star')
+#        e = EPT('test/ept-star')
         e = EPT('http://entwine.io/data/ept-star')
 
         e.queryResolution = 0.1
