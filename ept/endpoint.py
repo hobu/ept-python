@@ -16,12 +16,17 @@ class Http(Driver):
     def __init__(self, root):
         super(Http, self).__init__(root)
 
-    async def get(self, part, session = None):
+    async def download(self, session, url):
+        async with session.get(url) as response:
+            return await response.read()
+
+    async def get(self, part, session = None, tpool=None):
         url = self.root + part
+        if tpool:
+            return await tpool.put(self.download(session, url))
         if session:
             async with session.get(url) as response:
                 return await response.read()
-
         else:
             async with aiohttp.ClientSession() as session:
                 async with session.get(url) as response:
@@ -48,7 +53,7 @@ class File(Driver):
     def __init__(self, root):
         super(File, self).__init__(root)
 
-    async def get(self, part, session=None):
+    async def get(self, part, session=None, tpool=None):
         url = self.root
         if part:
             url = url + part
@@ -74,6 +79,6 @@ class Endpoint(object):
         o = loop.run_until_complete(self.driver.get(part))
         return o
 
-    async def aget(self, part=None, session=None):
-        return await self.driver.get(part, session)
+    async def aget(self, part=None, session=None, tpool=None):
+        return await self.driver.get(part, session, tpool)
 

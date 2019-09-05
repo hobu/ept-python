@@ -12,6 +12,7 @@ class Key(object):
         self.ids = [0, 0, 0]
         self.coords = [0.0 for i in range(6)]
         self.d = 0
+        self.count = 0
 
         if k:
             if isinstance(k, Key):
@@ -33,7 +34,7 @@ class Key(object):
         minx = self.coords[0]; miny = self.coords[1]; minz = self.coords[2]
         maxx = self.coords[3]; maxy = self.coords[4]; maxz = self.coords[5]
 
-        return "id: %s, box3d(%.3f %.3f %.3f %.3f %.3f %.3f)" % (self.id(), minx, miny, minz, maxx, maxy, maxz)
+        return "id: %s, box3d(%.3f %.3f %.3f %.3f %.3f %.3f) %d" % (self.id(), minx, miny, minz, maxx, maxy, maxz, self.count)
 
     def contains(self, other):
         return  self.coords[0] <= other.coords[0] and self.coords[3] <= other.coords[3] and \

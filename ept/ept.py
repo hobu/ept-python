@@ -8,14 +8,27 @@ import json
 from .info import Info
 from .hierarchy import Key, Bounds
 from .endpoint import Endpoint
+from .pool import TaskPool
+from .laz import LAZ
 
 import concurrent.futures
+from urllib.parse import urlparse, urljoin, urlsplit
+import os
 
 class EPT(object):
 
     def __init__(self,  url,
                         bounds = None,
                         queryResolution = None):
+
+        if url.endswith('/'):
+            url = url[:-1]
+
+        if url.endswith('.json'):
+            # gave us path to EPT root
+            p = urlsplit(url)
+            path = os.path.dirname(p.path)
+            url = urljoin (url, path, '/')
 
         self.root_url = url
         self.key = Key()
@@ -36,7 +49,27 @@ class EPT(object):
     def count(self):
         loop = asyncio.get_event_loop()
         o = loop.run_until_complete(self.overlaps())
-        return (sum(self.overlaps_dict.values()))
+        return (sum(k.count for k in self.overlaps_dict))
+
+    def data(self):
+        loop = asyncio.get_event_loop()
+        if (not self.overlaps_dict):
+            o = loop.run_until_complete(self.overlaps())
+        o = loop.run_until_complete(self.adata())
+        return o
+
+    async def adata(self):
+        limit = 10
+        connector = aiohttp.TCPConnector(limit=None)
+        async with aiohttp.ClientSession(connector=connector) as session, TaskPool(limit) as tasks:
+
+            for key in self.overlaps_dict:
+                url = "/ept-data/" + key.id() + ".laz"
+                await tasks.put(self.endpoint.aget(url, session))
+
+        laz = [LAZ(tasks.data[i]['result']) for i in tasks.data]
+        return laz
+#        return tasks.data
 
     async def overlaps(self):
         k = Key()
@@ -97,7 +130,8 @@ class EPT(object):
 
         else:
             # check overlaps in each direction
-            self.overlaps_dict[key] = numPoints
+            key.count = numPoints
+            self.overlaps_dict[key] = key
             for direction in range(8):
                 await self._overlaps(self.endpoint,
                                     self.overlaps_dict,

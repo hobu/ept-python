@@ -47,7 +47,7 @@ long_description = readme + "\n\n" + changes
 
 
 setup_args = dict(
-    name="ept",
+    name="ept-python",
     version=str(module_version),
     install_requires=["lazperf","laspy","pyproj", "numpy", "aiohttp", "aiofiles", "requests"],
     description="",

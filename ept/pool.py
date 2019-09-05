@@ -12,7 +12,6 @@ class TaskPool(object):
         self.data = {}
 
     async def put(self, coro):
-
         await self._semaphore.acquire()
 
         # cache our coro's args
