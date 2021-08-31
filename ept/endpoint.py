@@ -21,7 +21,7 @@ class Http(Driver):
             return await response.read()
 
     async def get(self, part, session = None, tpool=None):
-        url = self.root + part
+        url = self.root
         if tpool:
             return await tpool.put(self.download(session, url))
         if session:
@@ -60,7 +60,6 @@ class File(Driver):
 
         async with aiofiles.open(url, 'rb') as d:
             return await d.read()
-
 
 
 class Endpoint(object):

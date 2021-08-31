@@ -5,6 +5,8 @@ import asyncio
 
 import json
 
+from urllib.parse import urlparse
+
 from .info import Info
 from .hierarchy import Key, Bounds
 from .endpoint import Endpoint
@@ -21,15 +23,6 @@ class EPT(object):
                         bounds = None,
                         queryResolution = None):
 
-        if url.endswith('/'):
-            url = url[:-1]
-
-        if url.endswith('.json'):
-            # gave us path to EPT root
-            p = urlsplit(url)
-            path = os.path.dirname(p.path)
-            url = urljoin (url, path, '/')
-
         self.root_url = url
         self.key = Key()
         self.overlaps_dict = {}
@@ -40,11 +33,17 @@ class EPT(object):
         self.info = self.get_info()
         self.computedDepth = False
 
-
     def get_info(self):
-        d = self.endpoint.get('/ept.json')
-        info = Info(d)
-        return info
+        if 'ept.json' not in self.root_url:
+            if self.root_url.endswith('/'):
+                self.root_url = self.root_url[:-1]
+            d = self.endpoint.get('/ept.json')
+            info = Info(d)
+            return info
+        else:
+            d = self.endpoint.get('')
+            info = Info(d)
+            return info
 
     def count(self):
         loop = asyncio.get_event_loop()
@@ -137,4 +136,3 @@ class EPT(object):
                                     self.overlaps_dict,
                                     hier,
                                     key.bisect(direction), session)
-
