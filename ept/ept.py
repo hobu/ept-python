@@ -4,6 +4,7 @@ import aiofiles
 import asyncio
 
 import json
+import numpy
 
 from .info import Info
 from .hierarchy import Key, Bounds
@@ -14,6 +15,7 @@ from .laz import LAZ
 import concurrent.futures
 from urllib.parse import urlparse, urljoin, urlsplit
 import os
+
 
 class EPT(object):
 
@@ -40,6 +42,33 @@ class EPT(object):
         self.info = self.get_info()
         self.computedDepth = False
 
+    def as_laspy(self, strictbounds=True):
+        """
+        Method to return a single LasData object for an ept query. 
+        """
+
+        def filter(las, xmin, ymin, zmin, xmax, ymax, zmax):
+            return las.points.array[
+                (las.x >= xmin) & (las.x < xmax) & \
+                (las.y >= ymin) & (las.y < ymax) & \
+                (las.z >= zmin) & (las.z < zmax)
+            ]
+
+        las_objects = self.data()
+        if las_objects:
+            las = las_objects[0].las
+            if strictbounds:
+                las.points.array = numpy.concatenate(
+                    [filter(l.las, *self.queryBounds.coords) for l in las_objects]
+                )
+            else:
+                las.points.array = numpy.concatenate(
+                    [l.las.points.array for l in las_objects]
+                )
+        else:
+            las = None
+
+        return las
 
     def get_info(self):
         d = self.endpoint.get('/ept.json')
@@ -59,7 +88,7 @@ class EPT(object):
         return o
 
     async def adata(self):
-        limit = 10
+        limit = 100
         connector = aiohttp.TCPConnector(limit=None)
         async with aiohttp.ClientSession(connector=connector) as session, TaskPool(limit) as tasks:
 
@@ -69,7 +98,6 @@ class EPT(object):
 
         laz = [LAZ(tasks.data[i]['result']) for i in tasks.data]
         return laz
-#        return tasks.data
 
     async def overlaps(self):
         k = Key()
