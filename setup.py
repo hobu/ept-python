@@ -49,7 +49,14 @@ long_description = readme + "\n\n" + changes
 setup_args = dict(
     name="ept-python",
     version=str(module_version),
-    install_requires=["lazperf","laspy","pyproj", "numpy", "aiohttp", "aiofiles", "requests"],
+    install_requires=[
+        "laspy[lazrs]",
+        "pyproj",
+        "numpy",
+        "aiohttp",
+        "aiofiles",
+        "requests"
+    ],
     description="",
     license="BSD",
     keywords="point cloud data organization",
