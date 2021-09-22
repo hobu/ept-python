@@ -14,17 +14,18 @@ class TaskPool(object):
     async def put(self, coro):
         await self._semaphore.acquire()
 
-        # cache our coro's args
-        args = coro.cr_frame.f_locals
-        self.data[id(coro)] = {'args': args }
-
-        # add the task
         task = asyncio.ensure_future(coro)
+
+        # cache coro's args with task-id
+        args = coro.cr_frame.f_locals
+        key_id = task.get_name()
+
+        self.data[key_id] = {'args': args }
         self._tasks.add(task)
         task.add_done_callback(self._on_task_done)
 
     def _on_task_done(self, task):
-        k = id(task._coro)
+        k = task.get_name()
         try:
             self.data[k]['result'] = task.result()
         except:
@@ -41,3 +42,4 @@ class TaskPool(object):
 
     def __aexit__(self, exc_type, exc, tb):
         return self.join()
+

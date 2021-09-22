@@ -88,7 +88,7 @@ class EPT(object):
         return o
 
     async def adata(self):
-        limit = 100
+        limit = 10
         connector = aiohttp.TCPConnector(limit=None)
         async with aiohttp.ClientSession(connector=connector) as session, TaskPool(limit) as tasks:
 
