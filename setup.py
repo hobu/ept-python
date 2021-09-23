@@ -36,7 +36,7 @@ if sys.version_info >= (3,):
 with open("VERSION.txt", "w", **open_kwds) as fp:
     fp.write(str(module_version))
 
-with open("README.txt", "r", **open_kwds) as fp:
+with open("README.md", "r", **open_kwds) as fp:
     readme = fp.read()
 
 with open("CHANGES.txt", "r", **open_kwds) as fp:
