@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.3.1
+## Version 0.4.0
 
   * Updated to laspy 2.0
   * Added lazrs to requirements
