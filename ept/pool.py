@@ -1,4 +1,6 @@
-import aiohttp
+#
+# Task Pool module
+#
 import asyncio
 
 
@@ -20,17 +22,17 @@ class TaskPool(object):
         args = coro.cr_frame.f_locals
         key_id = task.get_name()
 
-        self.data[key_id] = {'args': args }
+        self.data[key_id] = {"args": args}
         self._tasks.add(task)
         task.add_done_callback(self._on_task_done)
 
     def _on_task_done(self, task):
         k = task.get_name()
         try:
-            self.data[k]['result'] = task.result()
+            self.data[k]["result"] = task.result()
         except:
-            self.data[k]['result'] = None
-        self.data[k]['exception'] = task.exception()
+            self.data[k]["result"] = None
+        self.data[k]["exception"] = task.exception()
         self._tasks.remove(task)
         self._semaphore.release()
 
@@ -42,4 +44,3 @@ class TaskPool(object):
 
     def __aexit__(self, exc_type, exc, tb):
         return self.join()
-

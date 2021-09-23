@@ -1,9 +1,12 @@
+#
+# Endpoint module
+#
+import json
 
 import aiohttp
 import aiofiles
 import asyncio
 
-import json
 from .pool import TaskPool
 
 
@@ -13,6 +16,7 @@ class Driver(object):
         self.parts = []
         self.concurrency = concurrency
 
+
 class Http(Driver):
     def __init__(self, root):
         super(Http, self).__init__(root)
@@ -21,7 +25,7 @@ class Http(Driver):
         async with session.get(url) as response:
             return await response.read()
 
-    async def get(self, part, session = None, tpool=None):
+    async def get(self, part, session=None, tpool=None):
         url = self.root + part
         if tpool:
             return await tpool.put(self.download(session, url))
@@ -38,17 +42,14 @@ class Http(Driver):
 
     async def bulk(self):
         connector = aiohttp.TCPConnector(limit=None)
-        async with aiohttp.ClientSession(connector=connector) as session, TaskPool(self.concurrency) as tasks:
+        async with aiohttp.ClientSession(connector=connector) as session, TaskPool(
+            self.concurrency
+        ) as tasks:
             for part in self.parts:
                 await tasks.put(self.download(session, self.root + part))
 
         return tasks
-#         print ('task returns:', len(tasks.data))
-#         k = list(tasks.data.keys())[0]
-#         t = tasks.data[k]
-#         return t['result']
-#
-#         raise (t['exception'])
+
 
 class File(Driver):
     def __init__(self, root):
@@ -59,16 +60,15 @@ class File(Driver):
         if part:
             url = url + part
 
-        async with aiofiles.open(url, 'rb') as d:
+        async with aiofiles.open(url, "rb") as d:
             return await d.read()
-
 
 
 class Endpoint(object):
     def __init__(self, root):
         self.root = root
 
-        if 'http' in root or 'https' in root:
+        if "http" in root or "https" in root:
             self.remote = True
             self.driver = Http(root)
         else:
@@ -82,4 +82,3 @@ class Endpoint(object):
 
     async def aget(self, part=None, session=None, tpool=None):
         return await self.driver.get(part, session, tpool)
-
