@@ -1,14 +1,11 @@
 #!/usr/bin/env python
-
-
+#
+#
 import logging
-import platform
 import sys
 from distutils.version import StrictVersion
 
-import numpy
 from setuptools import setup
-from setuptools.extension import Extension as DistutilsExtension
 
 logging.basicConfig()
 log = logging.getLogger(__file__)
@@ -36,26 +33,25 @@ if sys.version_info >= (3,):
 with open("VERSION.txt", "w", **open_kwds) as fp:
     fp.write(str(module_version))
 
-with open("README.txt", "r", **open_kwds) as fp:
+with open("README.md", "r", **open_kwds) as fp:
     readme = fp.read()
 
-with open("CHANGES.txt", "r", **open_kwds) as fp:
+with open("CHANGES.md", "r", **open_kwds) as fp:
     changes = fp.read()
 
 long_description = readme + "\n\n" + changes
-
-
 
 setup_args = dict(
     name="ept-python",
     version=str(module_version),
     install_requires=[
-        "laspy[lazrs]",
-        "pyproj",
-        "numpy",
-        "aiohttp",
-        "aiofiles",
-        "requests"
+        "laspy>=2.0.3",
+        "lazrs>=0.3.1",
+        "pyproj>=3.2.0",
+        "numpy>=1.21",
+        "aiohttp>=3.7",
+        "aiofiles>=0.7.0",
+        "requests>=2.26.0",
     ],
     description="",
     license="BSD",
