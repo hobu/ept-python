@@ -62,6 +62,7 @@ setup_args = dict(
     maintainer_email="howard@hobu.co",
     url="https://github.com/hobu/ept-python",
     long_description=long_description,
+    long_description_content_type="text/markdown",
     test_suite="test",
     include_package_data=True,
     packages=["ept"],
