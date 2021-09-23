@@ -1,0 +1,3 @@
+[build-system]
+requires = [ "laspy[lazrs]", "pyproj", "numpy", "aiohttp", "aiofiles", "requests", "setuptools" ]
+build-backend = "setuptools.build_meta"

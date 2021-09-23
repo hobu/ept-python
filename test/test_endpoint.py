@@ -12,7 +12,7 @@ class TestRemoteEndpoint(unittest.TestCase):
         self.assertEqual(self.e.remote, True)
 
     def test_fetch(self):
-        d = self.e.get('/ept.json')
+        d = self.e.get('/ept.json').replace(b"\r", b"")
         self.assertEqual(len(d), 2192)
 
 class TestLocalEndpoint(unittest.TestCase):
@@ -24,7 +24,7 @@ class TestLocalEndpoint(unittest.TestCase):
         self.assertEqual(self.e.remote, False)
 
     def test_fetch(self):
-        d = self.e.get('/ept.json')
+        d = self.e.get('/ept.json').replace(b"\r", b"")
         self.assertEqual(len(d), 2192)
 
 
