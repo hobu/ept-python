@@ -2,7 +2,7 @@
 #
 #
 
-__version__ = "0.4.2"
+__version__ = "0.5.0"
 
 from .ept import EPT
 from .hierarchy import Bounds
