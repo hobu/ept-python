@@ -18,8 +18,9 @@ class Driver(object):
 
 
 class Http(Driver):
-    def __init__(self, root):
+    def __init__(self, root, query=None):
         super(Http, self).__init__(root)
+        self.query = query
 
     async def download(self, session, url):
         async with session.get(url) as response:
@@ -27,6 +28,8 @@ class Http(Driver):
 
     async def get(self, part, session=None, tpool=None):
         url = self.root + part
+        if self.query is not None:
+            url += '?' + self.query
         if tpool:
             return await tpool.put(self.download(session, url))
         if session:
@@ -65,12 +68,13 @@ class File(Driver):
 
 
 class Endpoint(object):
-    def __init__(self, root):
+    def __init__(self, root, query=None):
         self.root = root
+        self.query = query
 
-        if "http" in root or "https" in root:
+        if root.startswith("http://") or root.startswith("https://"):
             self.remote = True
-            self.driver = Http(root)
+            self.driver = Http(root, query)
         else:
             self.remote = False
             self.driver = File(root)
