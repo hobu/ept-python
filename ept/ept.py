@@ -18,6 +18,9 @@ from .laz import LAZ
 
 class EPT(object):
     def __init__(self, url, bounds=None, queryResolution=None):
+        query = None
+        if ('?' in url):
+            [url, query] = url.split('?', 1)
 
         if url.endswith("/"):
             url = url[:-1]
@@ -28,13 +31,14 @@ class EPT(object):
             path = os.path.dirname(p.path)
             url = urljoin(url, path, "/")
 
+        self.query = query
         self.root_url = url
         self.key = Key()
         self.overlaps_dict = {}
         self.depthEnd = None
         self.queryResolution = queryResolution
         self.queryBounds = bounds
-        self.endpoint = Endpoint(self.root_url)
+        self.endpoint = Endpoint(self.root_url, self.query)
         self.info = self.get_info()
         self.computedDepth = False
 
