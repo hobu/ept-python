@@ -28,7 +28,7 @@ class EPT(object):
         if url.endswith(".json"):
             # gave us path to EPT root
             p = urlsplit(url)
-            url = SplitResult(p.scheme, p.netloc, os.path.dirname(p.path), p.query, p.fragment).geturl()
+            url = SplitResult(p.scheme, p.netloc, os.path.dirname(p.path), "", "").geturl()
 
         self.query = query
         self.root_url = url
