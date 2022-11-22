@@ -76,5 +76,8 @@ setup_args = dict(
         "Programming Language :: Python :: 3",
         "Topic :: Scientific/Engineering :: GIS",
     ],
+    extras_require={
+        "s3": "boto3>=1.0.0",
+    }
 )
 setup(**setup_args)

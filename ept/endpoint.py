@@ -1,11 +1,10 @@
 #
 # Endpoint module
 #
-import json
-
 import aiohttp
 import aiofiles
 import asyncio
+from urllib.parse import urlsplit
 
 from .pool import TaskPool
 
@@ -54,6 +53,23 @@ class Http(Driver):
         return tasks
 
 
+class S3(Driver):
+    def __init__(self, root):
+        super(S3, self).__init__(root)
+
+    async def get(self, part, session=None, tpool=None):
+        import boto3
+        url = self.root + part
+        s3 = boto3.resource("s3")
+        url_ = urlsplit(url)
+
+        content_object = s3.Object(url_.netloc, url_.path.strip("/"))
+        file_content = content_object.get()["Body"].read()
+        if part.endswith(".laz"):
+            return file_content
+        return file_content.decode("utf-8")
+
+
 class File(Driver):
     def __init__(self, root):
         super(File, self).__init__(root)
@@ -75,6 +91,9 @@ class Endpoint(object):
         if root.startswith("http://") or root.startswith("https://"):
             self.remote = True
             self.driver = Http(root, query)
+        elif root.startswith("s3://"):
+            self.remote = True
+            self.driver = S3(root)
         else:
             self.remote = False
             self.driver = File(root)
