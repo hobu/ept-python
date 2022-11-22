@@ -3,14 +3,14 @@
 #
 import os
 import json
-from urllib.parse import urljoin, urlsplit
+from urllib.parse import urlsplit, SplitResult
 
 import aiohttp
 import asyncio
 import numpy
 
 from .info import Info
-from .hierarchy import Key, Bounds
+from .hierarchy import Key
 from .endpoint import Endpoint
 from .pool import TaskPool
 from .laz import LAZ
@@ -28,8 +28,7 @@ class EPT(object):
         if url.endswith(".json"):
             # gave us path to EPT root
             p = urlsplit(url)
-            path = os.path.dirname(p.path)
-            url = urljoin(url, path, "/")
+            url = SplitResult(p.scheme, p.netloc, os.path.dirname(p.path), p.query, p.fragment).geturl()
 
         self.query = query
         self.root_url = url
