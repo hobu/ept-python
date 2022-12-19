@@ -57,17 +57,21 @@ class S3(Driver):
     def __init__(self, root):
         super(S3, self).__init__(root)
 
-    async def get(self, part, session=None, tpool=None):
+    def download(self, url):
         import boto3
-        url = self.root + part
         s3 = boto3.resource("s3")
         url_ = urlsplit(url)
 
         content_object = s3.Object(url_.netloc, url_.path.strip("/"))
         file_content = content_object.get()["Body"].read()
-        if part.endswith(".laz"):
+        if url.endswith(".laz"):
             return file_content
         return file_content.decode("utf-8")
+
+    async def get(self, part, session=None, tpool=None):
+        url = self.root + part
+        loop = asyncio.get_event_loop()
+        return await loop.run_in_executor(None, self.download, url)
 
 
 class File(Driver):
