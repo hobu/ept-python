@@ -49,7 +49,7 @@ setup_args = dict(
         "lazrs>=0.3.1",
         "pyproj>=3.2.0",
         "numpy>=1.21",
-        "aiohttp==3.7.4", # https://github.com/aio-libs/aiohttp/issues/5394
+        "aiohttp>=3.8.3",
         "aiofiles>=0.7.0",
         "requests>=2.26.0",
     ],
